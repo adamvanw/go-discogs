@@ -28,14 +28,14 @@ The lib is under MIT but be sure you are familiar with [Discogs API Terms of Use
  
 Install
 --------
-    go get github.com/anaelorlinski/go-discogs
+    go get github.com/adamvanw/go-discogs
 
 Usage
 ---------
 The discogs package provides a client for accessing the Discogs API. 
 First of all import library and init client variable. According to discogs api documentation you [must provide your user-agent](https://www.discogs.com/developers/#page:home,header:home-general-information). 
 ```go
-import "github.com/anaelorlinski/go-discogs"
+import "github.com/adamvanw/go-discogs"
 ```
 
 Some requests require authentication (as any user). According to [Discogs](https://www.discogs.com/developers/#page:authentication,header:authentication-discogs-auth-flow), to send requests with Discogs Auth, you have two options: sending your credentials in the query string with key and secret parameters or a [token parameter](https://www.discogs.com/settings/developers).
