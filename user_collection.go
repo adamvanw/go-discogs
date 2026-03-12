@@ -2,7 +2,9 @@ package discogs
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
+	"time"
 )
 
 // CollectionService is an interface to work with collection.
@@ -63,14 +65,69 @@ func (s *collectionService) CollectionFolders(ctx context.Context, username stri
 	return collection, err
 }
 
+type Notes []struct {
+	FieldID int    `json:"field_id"`
+	Value   string `json:"value"`
+}
+
+func (n *Notes) UnmarshalJSON(data []byte) error {
+	// If it's a string, just ignore it (or store it if you need it)
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		return nil
+	}
+	// Otherwise unmarshal as array
+	type Alias []struct {
+		FieldID int    `json:"field_id"`
+		Value   string `json:"value"`
+	}
+	var alias Alias
+	if err := json.Unmarshal(data, &alias); err != nil {
+		return err
+	}
+	*n = Notes(alias)
+	return nil
+}
+
 // CollectionItemSource ...
+type CollectionItemNotes struct {
+	MediaCondition  string
+	SleeveCondition string
+	Price           string
+	Status          string
+	Notes           string
+}
+
+func (n Notes) Parse() CollectionItemNotes {
+	var parsed CollectionItemNotes
+	for _, note := range n {
+		switch note.FieldID {
+		case 1:
+			parsed.MediaCondition = note.Value
+		case 2:
+			parsed.SleeveCondition = note.Value
+		case 3:
+			parsed.Price = note.Value
+		case 6:
+			parsed.Status = note.Value
+		case 7:
+			parsed.Notes = note.Value
+		}
+	}
+	return parsed
+}
+
+func (c *CollectionItemSource) ParsedNotes() CollectionItemNotes {
+	return c.Notes.Parse()
+}
+
 type CollectionItemSource struct {
 	ID               int              `json:"id"`
 	BasicInformation BasicInformation `json:"basic_information"`
-	DateAdded        string           `json:"date_added"`
+	DateAdded        time.Time        `json:"date_added"`
 	FolderID         int              `json:"folder_id,omitempty"`
 	InstanceID       int              `json:"instance_id"`
-	Notes            string           `json:"notes,omitempty"`
+	Notes            Notes            `json:"notes,omitempty"` // changed from string
 	Rating           int              `json:"rating"`
 }
 
